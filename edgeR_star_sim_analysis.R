@@ -27,47 +27,54 @@ sim_data <- readRDS("sim_data.RDS")
 ############## Extract Counts/meta data #################
 counts <- as.matrix(sim_data$counts)
 
-meta_data=data.frame(patient=factor(sim_data$ids),
-                     time=factor(sim_data$time),
-                     group=factor(sim_data$groups))
+meta_data = data.frame(
+  patient = factor(sim_data$ids),
+  time = factor(sim_data$time),
+  group = factor(sim_data$groups)
+)
 
-de=sim_data$de
+de = sim_data$de
 
 ############## Make Contrasts #################
 
 ## Add in 0's to contrasts. Number of patients-1
-num_pat_design=length(unique(meta_data$patient))-1
-pat_0s=rep(0, num_pat_design)
+num_pat_design = length(unique(meta_data$patient)) - 1
+pat_0s = rep(0, num_pat_design)
 
 
 ## Contrasts have to be made to incorporate patient as fixed effect
 ## Insert patient 0's after intercept, time variable positions
-contrasts=list(
+contrasts = list(
   # c3 is inestimable since group not included in the model
   # Difference between any timepoints in treatment group
-  c4=rbind(c(0, 1,  0, 0, pat_0s,  1,  0,  0), #Difference btwn. time0 and time1 in trt.
-           c(0,  0,  1, 0, pat_0s,  0,  1,  0), #Difference btwn. time0 and time2 in trt.
-           c(0,  0,  0, 1, pat_0s,  0,  0,  1)#, #Difference btwn. time0 and time3 in trt.
+  c4 = rbind(
+    c(0, 1,  0, 0, pat_0s,  1,  0,  0),
+    #Difference btwn. time0 and time1 in trt.
+    c(0,  0,  1, 0, pat_0s,  0,  1,  0),
+    #Difference btwn. time0 and time2 in trt.
+    c(0,  0,  0, 1, pat_0s,  0,  0,  1)#, #Difference btwn. time0 and time3 in trt.
   ),
   # Are any of the interactions significant
-  c5=rbind(c(0, 0, 0,  0,  pat_0s,  1,  0, 0),
-           c(0, 0, 0,  0,  pat_0s,  0,  1, 0),
-           c(0, 0, 0,  0,  pat_0s,  0,  0, 1)
+  c5 = rbind(
+    c(0, 0, 0,  0,  pat_0s,  1,  0, 0),
+    c(0, 0, 0,  0,  pat_0s,  0,  1, 0),
+    c(0, 0, 0,  0,  pat_0s,  0,  0, 1)
   ),
   # Any Significant Coefficients
-  c6=rbind(c(0,  0,  0,  0,pat_0s,  0,  0,  0),
-           c(0,  1,  0,  0, pat_0s, 0,  0,  0),
-           c(0,  0,  1,  0,pat_0s,  0,  0,  0),
-           c(0,  0,  0,  1, pat_0s, 0, 0,  0),
-           c(0,  0,  0,  0, pat_0s, 1,  0, 0),
-           c(0,  0,  0,  0, pat_0s, 0,  1, 0),
-           c(0,  0,  0,  0, pat_0s, 0,  0, 1)
+  c6 = rbind(
+    c(0,  0,  0,  0, pat_0s,  0,  0,  0),
+    c(0,  1,  0,  0, pat_0s, 0,  0,  0),
+    c(0,  0,  1,  0, pat_0s,  0,  0,  0),
+    c(0,  0,  0,  1, pat_0s, 0, 0,  0),
+    c(0,  0,  0,  0, pat_0s, 1,  0, 0),
+    c(0,  0,  0,  0, pat_0s, 0,  1, 0),
+    c(0,  0,  0,  0, pat_0s, 0,  0, 1)
   )
 )
 
 ## Transpose contrasts so they work in edgeR
-contrasts=lapply(contrasts, function(x){
-  x=t(rbind(x))
+contrasts = lapply(contrasts, function(x) {
+  x = t(rbind(x))
 })
 
 
@@ -77,23 +84,23 @@ contrasts=lapply(contrasts, function(x){
 
 ############## Fit edgeR models #################
 
-design_mat <- model.matrix(~time+patient+group:time, data=meta_data)
+design_mat <- model.matrix( ~ time + patient + group:time, data = meta_data)
 ## time0 interaction needs to be removed to make estimable
-design_mat<-design_mat[,-grep("time0", colnames(design_mat))]
+design_mat <- design_mat[, -grep("time0", colnames(design_mat))]
 
 dge <- DGEList(counts = counts)
 dge <- edgeR::calcNormFactors(dge)
-dge <- edgeR::estimateDisp(dge, design=design_mat)
+dge <- edgeR::estimateDisp(dge, design = design_mat)
 
 fit <- glmFit(dge, design_mat)
 
 ############## Run LRT test for each contrast #################
-lrt_res=lapply(contrasts,function(x){
-    tab=glmLRT(fit, contrast=x)$table
-    tab$p_val_adj=p.adjust(tab$PValue, method="BH")
-    tab$de=de
-    colnames(tab)[colnames(tab)=="PValue"]="p_val_raw"
-    tab
+lrt_res = lapply(contrasts, function(x) {
+  tab = glmLRT(fit, contrast = x)$table
+  tab$p_val_adj = p.adjust(tab$PValue, method = "BH")
+  tab$de = de
+  colnames(tab)[colnames(tab) == "PValue"] = "p_val_raw"
+  tab
   
 })
 
@@ -102,13 +109,13 @@ lrt_res=lapply(contrasts,function(x){
 #######################################
 
 ############## Calculate T1E for all contrast #################
-T1E_vals=sapply(lrt_res, stat_calc, pval_thresh=.05, stat="T1E")
+T1E_vals = sapply(lrt_res, stat_calc, pval_thresh = .05, stat = "T1E")
 
 ############## Calculate FDR for all contrast #################
-FDR_vals=sapply(lrt_res, stat_calc, pval_thresh=.05, stat="FDR")
+FDR_vals = sapply(lrt_res, stat_calc, pval_thresh = .05, stat = "FDR")
 
 ############## Calculate power for all contrast #################
-power_vals=sapply(lrt_res, stat_calc, pval_thresh=.05, stat="power")
+power_vals = sapply(lrt_res, stat_calc, pval_thresh = .05, stat = "power")
 
 ############## Calculate non-convergence (same for all contrasts)#########
-non_conv=stat_calc(lrt_res$c1, stat="non_conv")
+non_conv = stat_calc(lrt_res$c1, stat = "non_conv")
