@@ -45,9 +45,9 @@ pat_0s = rep(0, num_pat_design)
 ## Contrasts have to be made to incorporate patient as fixed effect
 ## Insert patient 0's after intercept, time variable positions
 contrasts = list(
-  # c3 is inestimable since group not included in the model
+  # c1 is inestimable since group not included in the model
   # Difference between any timepoints in treatment group
-  c4 = rbind(
+  c2 = rbind(
     c(0, 1,  0, 0, pat_0s,  1,  0,  0),
     #Difference btwn. time0 and time1 in trt.
     c(0,  0,  1, 0, pat_0s,  0,  1,  0),
@@ -55,13 +55,13 @@ contrasts = list(
     c(0,  0,  0, 1, pat_0s,  0,  0,  1)#, #Difference btwn. time0 and time3 in trt.
   ),
   # Are any of the interactions significant
-  c5 = rbind(
+  c3 = rbind(
     c(0, 0, 0,  0,  pat_0s,  1,  0, 0),
     c(0, 0, 0,  0,  pat_0s,  0,  1, 0),
     c(0, 0, 0,  0,  pat_0s,  0,  0, 1)
   ),
   # Any Significant Coefficients
-  c6 = rbind(
+  c4 = rbind(
     c(0,  0,  0,  0, pat_0s,  0,  0,  0),
     c(0,  1,  0,  0, pat_0s, 0,  0,  0),
     c(0,  0,  1,  0, pat_0s,  0,  0,  0),
