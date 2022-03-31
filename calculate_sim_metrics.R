@@ -73,5 +73,6 @@ stat_calc = function(res_tab, pval_thresh, stat) {
       power = two_by_two["TRUE", "TRUE"] / sum(two_by_two[, "TRUE"]),
       non_conv = sum(is.na(res_tab[, pval_var]) / length(res_tab[, pval_var]))
     )
+  return(stat_val)
   
 }
