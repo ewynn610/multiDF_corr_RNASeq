@@ -118,4 +118,4 @@ FDR_vals = sapply(lrt_res, stat_calc, pval_thresh = .05, stat = "FDR")
 power_vals = sapply(lrt_res, stat_calc, pval_thresh = .05, stat = "power")
 
 ############## Calculate non-convergence (same for all contrasts)#########
-non_conv = stat_calc(lrt_res$c1, stat = "non_conv")
+non_conv = stat_calc(lrt_res$c2, stat = "non_conv")
