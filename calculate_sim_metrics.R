@@ -29,7 +29,7 @@
 ## stat: simulation statistic to calculate. Options are "T1E", "FDR", "power",
 ##       and "non-conv" (proportion non-convergence)
 
-stat_calc = function(res_tab, pval_thresh, stat) {
+stat_calc = function(res_tab, pval_thresh=.05, stat) {
   ## If stat is T1E, use raw p-values, otherwise use adjusted p-values
   pval_var = "p_val_adj"
   if (stat == "T1E")
