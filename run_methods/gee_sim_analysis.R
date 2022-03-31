@@ -16,7 +16,7 @@ library(DESeq2)
 library(corrRNASeq)
 
 ## Source in function to calculate simulation metrics
-source("calculate_sim_metrics.R")
+source("run_methods/calculate_sim_metrics.R")
 
 
 #######################################
@@ -24,8 +24,8 @@ source("calculate_sim_metrics.R")
 #######################################
 
 ############## Read in data/contrasts #################
-sim_data <- readRDS("sim_data.RDS")
-contrasts <- readRDS("contrasts.RDS")
+sim_data <- readRDS("run_methods/sim_data.RDS")
+contrasts <- readRDS("run_methods/contrasts.RDS")
 
 
 ############## Extract Counts/meta data #################
